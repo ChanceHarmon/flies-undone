@@ -8,7 +8,7 @@ const cors = require('cors');
 const superagent = require('superagent');
 const PORT = process.env.PORT || 3002;
 const fs = require('fs');
-const { fileURLToPath } = require('url');
+
 
 app.use(cors());
 app.use(express.urlencoded({ extended: true }))
@@ -45,7 +45,7 @@ function handleSearch(request, response) {
       const stepOne = $('#imgMainImage');
       const stepTwo = $('[itemprop ="description"]');
       const stepThree = stepTwo['0'].children;
-      console.log(stepThree)
+      //console.log(stepThree)
       const image = stepOne['0'].attribs['data-cfsrc'];
       let descripStr = '';
       //console.log('testing', stepTwo['0'].children)
@@ -99,18 +99,39 @@ function handleSearch(request, response) {
       // const subContentBase = stepTwo['0'].children[6].children[1].children[1].children[0].children;
 
       for (let i = 0; i < stepThree.length; i++) {
+        const imitateArray = []
         console.log('stepThree in imitate')
         if (stepThree[i].name === 'blockquote') {
           stepThree[i].children[1].children[1].children[0].children.forEach(item => {
             if (item.type === 'text') {
               //so far this has gotten me to the same place I think I need to be to start the ridiculous whitespace trimmer, goals baby
-              console.log('in new loop key key 3', item)
+              //console.log('in new loop key key 3', item)
+
+              let firstCut = item.data.replace(/,/g, '')
+              // console.log('new firstCut', firstCut)
+              // for (let i = 0; i < firstCut.length; i++) {
+              //   console.log('first cut in loop', firstCut.charCodeAt(0), 'i in loop', i)
+              //   if (firstCut[0] === ' ' || firstCut.charCodeAt(0) === 160 || firstCut.charCodeAt(0) === 32) {
+              //     console.log('first cut in loop if space is first index', firstCut, 'i in loop', i)
+              //     firstCut = firstCut.substring(1, firstCut.length)
+              //     i = 0
+              //   }
+
+              // }
+              console.log('firstcut', firstCut)
+              imitateArray.push(firstCut)
             }
           })
+          console.log('array', imitateArray)
+          for (let i = 0; i < imitateArray.length; i++) {
+            for (let j = 0; j < imitateArray[i].length; j++) {
+              console.log('charcode in for loop', imitateArray[i].charCodeAt(j), imitateArray[i][j])
+              //Pick it up here. THese charCodes are helping in being able to clean the string properly, just need to have faith in the old for loop and sync code instead of always assuming i haven't waited long enough for something. The endless 22
+            }
+          }
         }
 
       }
-      // const imitateArray = []
       // subContentBase.forEach(item => {
       //   //console.log('item', item)
       //   if (item.type === 'text') {
@@ -120,18 +141,6 @@ function handleSearch(request, response) {
       //     let firstCut = item.data.replace(/,/g, '')
       //     //firstCut.trim();
       //     let test;
-      //     for (let i = 0; i < firstCut.length; i++) {
-      //       console.log('first cut in loop', firstCut.charCodeAt(0), 'i in loop', i)
-      //       if (firstCut[0] === ' ' || firstCut.charCodeAt(0) === 160) {
-      //         console.log('first cut in loop if space is first index', firstCut, 'i in loop', i)
-      //         firstCut = firstCut.substring(1, firstCut.length - 1)
-      //         i = 0
-      //       }
-
-      //     }
-      //     console.log('firstcut', firstCut)
-      //     console.log('test', test)
-      //     imitateArray.push(firstCut)
 
       //     // funZ.imitates =
       //     //   console.log('each fly type if type is text', item.data)
