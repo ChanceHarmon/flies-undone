@@ -26,37 +26,33 @@ app.post('/search', handleSearch);
 
 function handleSearch(request, response) {
 
+  //When all of the below works, still need to figure out how to pull in the json lists of the urls, do all of this stuff in a loop, and build json files that are filled with all of these objects from the loop.
 
   //check list
   //image = done
   //description = done
-  //imitate = not
+  //imitate = done
   //species = not
-  //more = not done
+  //more = not
 
-  //console.log('made it', request.body)
-  // let temp = [];
+  //First item above = not
 
+  //Final write actual file post loop = not
 
-  superagent.get('https://www.bigyflyco.com/adamscaddis-detail.htm')
+  superagent.get('https://www.bigyflyco.com/adamscripple-detail.htm')
     .then(result => {
       const funZ = {};
       const $ = cheerio.load(result.text);
       const stepOne = $('#imgMainImage');
       const stepTwo = $('[itemprop ="description"]');
       const stepThree = stepTwo['0'].children;
-      //console.log(stepThree)
+
+      //This one below line crates the image url
       const image = stepOne['0'].attribs['data-cfsrc'];
+      // This becomes the descrition paragraph
       let descripStr = '';
-      //console.log('testing', stepTwo['0'].children)
 
-      //keep this for now
-      //console.log('stepTwo', stepTwo['0'].children[4].children[1].children[0].children[0].data)//this works for a single li for description
-
-      //also  stepTwo['0'].children[4] I think that index of 5 or 6 is the next step for the other props I want, so keep track of that for future reference 
-
-      //this step is store the li strings
-      // Below is version2, this seems to work better dynamically for change oof index position of value, but I still want to keep the version underneath for reference for now.
+      // Below is version2 of building description, this seems to work better dynamically for change oof index position of value, but I still want to keep the version underneath for reference for now.
       for (let i = 0; i < stepThree.length; i++) {
         //console.log('stepThree in loop', stepThree[i])
         if (stepThree[i].name === 'ul') {
@@ -73,108 +69,82 @@ function handleSearch(request, response) {
         }
 
       }
-      // stepTwo['0'].children[4].children.forEach(child => {
-      //   if (child.name) {
-      //     if (child.name === 'li') {
-      //       if (child.children[0].children[0].data) {
-      //         descripStr += child.children[0].children[0].data;
-      //       }
-      //     }
-      //   }
-      // })
-      //console.log('string', descripStr)
-      //Don't touch above, works perfectly!!!!!!
 
       funZ.image = image;
       funZ.description = descripStr;
-      console.log('funz', funZ)//YES!! Object traveler works
-      //next step, get that nested block info of imitate, fish, and more. Let's go !!!!!
 
-      //console.log('here it g\'s')
-      //console.log('sub-block', stepTwo['0'].children[5])
-
-      //Currently this kinda works for imaitate list for adams detail
-      //Update, we are aboout to hack this thing up, but hopefully in similar fashin to the way description is built above we find the way :)
-
-      // const subContentBase = stepTwo['0'].children[6].children[1].children[1].children[0].children;
+      //Below builds the imitates these insects list. Also several versions in to handle index changes in different url's.
 
       for (let i = 0; i < stepThree.length; i++) {
+
         const imitateArray = []
-        console.log('stepThree in imitate')
+
         if (stepThree[i].name === 'blockquote') {
-          stepThree[i].children[1].children[1].children[0].children.forEach(item => {
-            if (item.type === 'text') {
-              //so far this has gotten me to the same place I think I need to be to start the ridiculous whitespace trimmer, goals baby
-              //console.log('in new loop key key 3', item)
 
-              let firstCut = item.data.replace(/,/g, '')
-              // console.log('new firstCut', firstCut)
-              // for (let i = 0; i < firstCut.length; i++) {
-              //   console.log('first cut in loop', firstCut.charCodeAt(0), 'i in loop', i)
-              //   if (firstCut[0] === ' ' || firstCut.charCodeAt(0) === 160 || firstCut.charCodeAt(0) === 32) {
-              //     console.log('first cut in loop if space is first index', firstCut, 'i in loop', i)
-              //     firstCut = firstCut.substring(1, firstCut.length)
-              //     i = 0
-              //   }
+          stepThree[i].children[1].children[1].children.forEach(child => {
 
-              // }
-              console.log('firstcut', firstCut)
-              imitateArray.push(firstCut)
+            for (let i = 0; i < child.children.length; i++) {
+
+              if (child.children[i].type === 'text') {
+
+                let firstCut = child.children[i].data.replace(/,/g, '')
+
+                while (firstCut[0] === ' ' || firstCut.charCodeAt(0) === 160 || firstCut.charCodeAt(0) === 32) {
+                  firstCut = firstCut.substring(1)
+                }
+
+                if (firstCut[firstCut.length - 1] === ' ' || firstCut.charCodeAt(firstCut.length - 1) === 160 || firstCut.charCodeAt(firstCut.length - 1) === 32) {
+                  firstCut = firstCut.substring(0, firstCut.length - 1)
+                }
+                imitateArray.push(firstCut)
+              }
             }
           })
-          console.log('array', imitateArray)
+          //This cleans up indexes that are empty from the array
           for (let i = 0; i < imitateArray.length; i++) {
-            for (let j = 0; j < imitateArray[i].length; j++) {
-              console.log('charcode in for loop', imitateArray[i].charCodeAt(j), imitateArray[i][j])
-              //Pick it up here. THese charCodes are helping in being able to clean the string properly, just need to have faith in the old for loop and sync code instead of always assuming i haven't waited long enough for something. The endless 22
+            if (imitateArray[i].length < 1) {
+              if (i === 0) {
+                imitateArray.shift();
+                i = 0;
+              } else if (i === imitateArray.length - 1) {
+                imitateArray.pop()
+              }
             }
           }
+          funZ.fly_imitates = imitateArray;
+          console.log('funZ', funZ)
         }
-
       }
-      // subContentBase.forEach(item => {
-      //   //console.log('item', item)
-      //   if (item.type === 'text') {
-      //     //console.log(item.data)
 
+      //This is the next start. Agenda is species of fish that are attracted to the fly.
 
-      //     let firstCut = item.data.replace(/,/g, '')
-      //     //firstCut.trim();
-      //     let test;
-
-      //     // funZ.imitates =
-      //     //   console.log('each fly type if type is text', item.data)
-      //   }
-
-      // })
-      // console.log(imitateArray)
-      //////////////////////////////////////////////////////////////////////
-      //     const stepTwo = Object.entries(stepOne)
-      //     stepTwo.forEach((item, i) => {
-      //       console.log('in foreach', item)
-      //       if (item[1].attribs) {
-      //         temp.push({ dryFlyUrl: item[1].attribs['data-cfsrc'] });
-      //         //temp.push(item[1].attribs['data-cfsrc']);
-      //       }
-      //     })
-      //     let testVar = { data: { dryFlyPageOne: temp } }
-      //     let otherVar = JSON.stringify(testVar)
-      //     fs.writeFile('data/dry-flies/page-1.json', otherVar, (err) => {
-      //       if (err) throw err;
-      //     })
-
-      //     // fs.writeFile('test3.json', temp, (err) => {
-      //     //   if (err) throw err;
-      //     // })
     }).then(() => {
       response.redirect('/');
     })
     .catch(err => console.error(err));
 }
 
-
-
 app.listen(PORT, () => {
   console.log(`Up on ${PORT}`);
 })
 
+  //Leaving this below for reference when I actually get to writing a file again.
+
+//////////////////////////////////////////////////////////////////////
+//     const stepTwo = Object.entries(stepOne)
+//     stepTwo.forEach((item, i) => {
+//       console.log('in foreach', item)
+//       if (item[1].attribs) {
+//         temp.push({ dryFlyUrl: item[1].attribs['data-cfsrc'] });
+//         //temp.push(item[1].attribs['data-cfsrc']);
+//       }
+//     })
+//     let testVar = { data: { dryFlyPageOne: temp } }
+//     let otherVar = JSON.stringify(testVar)
+//     fs.writeFile('data/dry-flies/page-1.json', otherVar, (err) => {
+//       if (err) throw err;
+//     })
+
+//     // fs.writeFile('test3.json', temp, (err) => {
+//     //   if (err) throw err;
+//     // })
