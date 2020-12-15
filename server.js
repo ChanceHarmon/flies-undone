@@ -29,17 +29,22 @@ function handleSearch(request, response) {
   //When all of the below works, still need to figure out how to pull in the json lists of the urls, do all of this stuff in a loop, and build json files that are filled with all of these objects from the loop.
 
   //check list
+
   //image = done
   //description = done
   //imitate = done
-  //species = not
-  //more = not
+  //species = done
 
-  //First item above = not
+  //more = not  addendum: I decided i would like to look at adding insect guides from another place, and in general a different json format than the per fly thing.
+
+  //First item above = not /////////////////////////////////////
 
   //Final write actual file post loop = not
 
-  superagent.get('https://www.bigyflyco.com/adamscripple-detail.htm')
+
+  //Next step is below. Now need to pull in my json files and starting making the superagent call dynamic... Going to save and then checkout to a different branch. This one could get ugly(ier)
+
+  superagent.get('https://www.bigyflyco.com/adamscaddis-detail.htm')
     .then(result => {
       const funZ = {};
       const $ = cheerio.load(result.text);
@@ -78,9 +83,9 @@ function handleSearch(request, response) {
       for (let i = 0; i < stepThree.length; i++) {
 
         const imitateArray = []
-
+        // console.log('starting back in imitate loop, trying to use it twice for without a second loop', stepThree[i])
         if (stepThree[i].name === 'blockquote') {
-
+          // console.log('test', stepThree[i].children[1].children[3].children[0].children[1].data)
           stepThree[i].children[1].children[1].children.forEach(child => {
 
             for (let i = 0; i < child.children.length; i++) {
@@ -112,12 +117,27 @@ function handleSearch(request, response) {
             }
           }
           funZ.fly_imitates = imitateArray;
+
+          //Below builds the attracted fish key value array. Some parts I would lke to go back to, but another day, it works for now.
+
+          let species = stepThree[i].children[1].children[3].children[0].children[1].data
+          let firstSarray = species.split(',')
+          console.log(firstSarray)
+          let etcReplace = firstSarray.map(string => {
+            // return string ? string.match(/etc./).string.replace(/etc./gi, '') : string;
+            if (string.match(/etc./gi)) return string.replace(/etc./gi, '')
+            else return string
+          })
+
+          //this works, but it is cheating and I know it, I just needed to move past it
+          let cleanSpeciesArr = etcReplace.map(fish => {
+            let fishStr = fish.trim();
+            return fishStr
+          })
+          funZ.attracted_fish = cleanSpeciesArr;
           console.log('funZ', funZ)
         }
       }
-
-      //This is the next start. Agenda is species of fish that are attracted to the fly.
-
     }).then(() => {
       response.redirect('/');
     })
